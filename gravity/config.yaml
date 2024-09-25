@@ -1,0 +1,9 @@
+input:
+  mongo:
+    uri: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017
+    namespace:
+      include:
+        - "turbo.*"
+output:
+  http:
+    url: http://dapr:3500/v1.0/publish/pubsub/tasks
