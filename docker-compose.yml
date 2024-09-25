@@ -46,7 +46,6 @@ services:
     volumes:
       - ./dapr/components:/components
     depends_on:
-      - backend
       - redis
 
   redis:
@@ -56,13 +55,19 @@ services:
       - "6379:6379"
 
   gravity:
-    image: martenseemann/gravity:latest
+    build:
+      context: ./gravity
+      dockerfile: Dockerfile
     container_name: gravity
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
-      - ./gravity/config.yaml:/etc/gravity/config.yaml
+      - ./gravity/config.yaml:/app/config.yaml
     depends_on:
       - mongodb
       - dapr
+    restart: unless-stopped
 
 volumes:
   mongo-data:
