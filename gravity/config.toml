@@ -1,0 +1,27 @@
+# 全局配置
+[[tables]]
+source = "turbo.turbo"
+target = "turbo.turbo"
+type = "full"  # 可选值：full, incremental, full-incr
+
+[input]
+type = "mongo"
+[input.mongo]
+  mode = "oplog"  # 使用 oplog 模式
+  source = "mongodb://admin:admin@mongodb:27017/?authSource=admin"
+  # 可选参数
+  # cluster-name = "my-cluster"  # 如果有需要，可设置集群名称
+
+[output]
+type = "http"
+[output.http]
+  method = "POST"
+  url = "http://dapr:3500/v1.0/publish/pubsub/tasks"
+  # 如果需要自定义请求头，可以添加 headers
+  # headers = { "Content-Type" = "application/json" }
+
+[metric]
+type = "prometheus"
+
+[batch-table-size-limit]
+  value = 1024  # 根据需要调整

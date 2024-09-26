@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install -y ca-certificates && \
 COPY --from=builder /go/src/github.com/moiot/gravity/bin/gravity .
 
 # 复制配置文件
-COPY config.yaml .
+COPY config.toml .
 
 # 设置默认的启动命令
-CMD ["./gravity", "-config=config.yaml"]
+CMD ["./gravity", "-config=/app/config.toml"]
