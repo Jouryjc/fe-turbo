@@ -1,7 +1,7 @@
 const taskList = document.getElementById('taskList');
 
 async function loadTasks() {
-  const response = await fetch('/tasks');
+  const response = await fetch('http://127.0.0.1:3000/tasks');
   const tasks = await response.json();
   tasks.forEach(addTaskToList);
 }
@@ -22,7 +22,7 @@ async function addTask() {
 
   const task = { name, status, remark };
 
-  await fetch('/tasks', {
+  await fetch('http://127.0.0.1:3000/tasks', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -37,9 +37,16 @@ async function addTask() {
 }
 
 // WebSocket setup
-const ws = new WebSocket('ws://localhost:8081');
+const ws = new WebSocket('ws://127.0.0.1:8081');
+
+ws.onopen = () => {
+  console.log('Connected to server');
+  // 向服务端推送一条确认消息
+  ws.send(JSON.stringify({ message: 'Client connected' }));
+};
 
 ws.onmessage = (event) => {
+  console.log(event.data);
   const task = JSON.parse(event.data);
   addTaskToList(task);
 };

@@ -1,14 +1,11 @@
 services:
   mongodb:
-    image: mongo:latest
+    image: mongo:4.4.29
     container_name: mongodb
     environment:
       MONGO_INITDB_DATABASE: turbo
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-    volumes:
-      - mongo-data:/data/db
-      - ./mongodb/initdb:/docker-entrypoint-initdb.d
     ports:
       - "27017:27017"
 
@@ -20,7 +17,7 @@ services:
       - DAPR_PUBSUB_NAME=pubsub
     depends_on:
       - mongodb
-      - dapr
+      # - dapr
     ports:
       - "3000:3000"
 
@@ -30,27 +27,47 @@ services:
     depends_on:
       - backend
     ports:
-      - "8080:80"
+      - "80:80"
 
-  dapr:
-    image: daprio/daprd:latest
-    container_name: dapr
-    command: [
-      "./daprd",
-      "-app-id", "backend",
-      "-app-port", "3000",
-      "-components-path", "/components"
-    ]
-    volumes:
-      - ./dapr/components:/components
-    depends_on:
-      - redis
+  # dapr:
+  #   image: daprio/daprd:latest
+  #   container_name: dapr
+  #   command: [
+  #     "./daprd",
+  #     "-app-id", "backend",
+  #     "-app-port", "3000",
+  #     "-components-path", "/components"
+  #   ]
+  #   volumes:
+  #     - ./dapr/components:/components
+  #   depends_on:
+  #     - redis
 
-  redis:
-    image: redis:alpine
-    container_name: redis
+  # redis:
+  #   image: redis:alpine
+  #   container_name: redis
+  #   ports:
+  #     - "6379:6379"
+
+  zookeeper:
+    image: bitnami/zookeeper:3.9
     ports:
-      - "6379:6379"
+      - "2181:2181"
+    volumes:
+      - "./bitnami:/bitnami"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+  kafka:
+    image: bitnami/kafka:3.4
+    ports:
+      - "9092:9092"
+    volumes:
+      - "./bitnami:/bitnami"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+    depends_on:
+      - zookeeper
 
   gravity:
     build:
@@ -61,10 +78,10 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
-      - ./gravity/config.yaml:/app/config.yaml
+      - ./gravity/config.toml:/app/config.toml
     depends_on:
       - mongodb
-      - dapr
+      # - dapr
     restart: unless-stopped
 
 volumes:
