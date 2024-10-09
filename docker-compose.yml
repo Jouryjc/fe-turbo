@@ -4,10 +4,28 @@ services:
     container_name: mongodb
     environment:
       MONGO_INITDB_DATABASE: turbo
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      # MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      # MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     ports:
       - "27017:27017"
+    command: "mongod --replSet rs0"
+
+  mongodb-init-job:
+    image: mongo:4.4.29
+    container_name: mongodb-init-job
+    command: >
+      bash -c "
+      sleep 10;
+      mongo --host mongodb:27017 --eval 'rs.initiate()';
+      mongo --host mongodb:27017 --authenticationDatabase admin --eval '
+        db.getSiblingDB(\"admin\").createUser({
+          user: \"admin\",
+          pwd: \"admin\",
+          roles: [{ role: \"root\", db: \"admin\" }]
+        });
+      '"
+    depends_on:
+      - mongodb
 
   backend:
     build: ./backend
@@ -66,6 +84,11 @@ services:
       - "./bitnami:/bitnami"
     environment:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CREATE_TOPICS=turbo_turbo:1:1
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
     depends_on:
       - zookeeper
 

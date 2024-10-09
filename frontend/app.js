@@ -47,8 +47,8 @@ ws.onopen = () => {
 
 ws.onmessage = (event) => {
   console.log(event.data);
-  const task = JSON.parse(event.data);
-  addTaskToList(task);
+  // const task = JSON.parse(event.data);
+  // addTaskToList(task);
 };
 
 // IndexedDB setup

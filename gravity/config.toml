@@ -10,6 +10,7 @@ port = 27017
 username = "admin"
 password = "admin"
 auth-db = "admin"
+replica-set = "rs0"
 
 [output]
 type = "async-kafka"
@@ -19,7 +20,7 @@ broker-addrs = ["kafka:9092"]
 
 [[output.config.routes]]
 match-schema = "turbo"
-match-table = "turbo"
+match-table = "tasks"
 dml-topic = "turbo_turbo"
 
 [scheduler]
@@ -29,3 +30,6 @@ nr-worker = 1
 batch-size = 100
 queue-size = 1024
 sliding-window-size = 1024
+
+[log]
+level = "debug"

@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const WebSocket = require("ws");
 const cors = require("cors");
+const kafka = require("kafka-node");
 
 const app = express();
 const PORT = 3000;
@@ -58,7 +59,26 @@ ws.on("connection", (ws) => {
   ws.on("data", (data) => {
     console.log(`Received data: ${data}`);
   });
+});
 
-  // 消费kafka的消息，然后将消息发送到客户端
+// Kafka client setup
+const kafkaClient = new kafka.KafkaClient({ kafkaHost: 'kafka:9092' });
+const consumer = new kafka.Consumer(
+  kafkaClient,
+  [{ topic: 'turbo_turbo', partition: 0 }],
+  { autoCommit: true }
+);
 
+consumer.on('message', (message) => {
+  console.log(`Received Kafka message: ${message.value}`);
+  // Broadcast message to all connected WebSocket clients
+  ws.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message.value);
+    }
+  });
+});
+
+consumer.on('error', (err) => {
+  console.error('Kafka consumer error:', err);
 });
