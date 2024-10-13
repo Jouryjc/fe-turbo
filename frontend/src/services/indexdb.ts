@@ -1,4 +1,3 @@
-// src/services/indexedDB.js
 import Dexie from 'dexie'
 
 // 创建并配置 Dexie 数据库
@@ -16,7 +15,6 @@ const tasksTable = db.table('tasks')
 export async function saveTask(task) {
   try {
     await tasksTable.put(task)
-    console.log('Task saved to IndexedDB')
   } catch (error) {
     console.error('Failed to save task to IndexedDB:', error)
   }
@@ -32,5 +30,15 @@ export async function getAllTasks() {
   } catch (error) {
     console.error('Failed to fetch tasks from IndexedDB:', error)
     return []
+  }
+}
+
+// 清空指定表的数据
+export async function clearTable(tableName) {
+  try {
+    await db.table(tableName).clear()
+    console.log(`Table '${tableName}' cleared in IndexedDB`)  
+  } catch (error) {
+    console.error(`Failed to clear table '${tableName}' in IndexedDB:`, error)
   }
 }

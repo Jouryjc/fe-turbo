@@ -40,6 +40,20 @@ app.post("/tasks", async (req, res) => {
   res.json(task);
 });
 
+app.delete("/tasks/:id", async (req, res) => {
+  const { id } = req.params;
+  console.log(`Deleting task with id: ${id}`);
+  await Task.findByIdAndDelete(id);
+  res.json({ message: 'Task deleted' });
+});
+
+app.put("/tasks/:id", async (req, res) => {
+  const { id } = req.params;
+  const updatedTask = req.body;
+  const task = await Task.findByIdAndUpdate(id, updatedTask, { new: true });
+  res.json(task);
+});
+
 // Start HTTP server
 app.listen(PORT, () => {
   console.log(`HTTP server running on port ${PORT}`);

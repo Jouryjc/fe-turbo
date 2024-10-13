@@ -1,4 +1,3 @@
-<!-- src/components/TaskList.vue -->
 <template>
   <div class="task-list-container">
     <h1>Todo List</h1>
@@ -14,13 +13,21 @@
         <ix-input v-model:value="newTask.remark" placeholder="Task Remark"></ix-input>
       </ix-form-item>
       <ix-form-item>
-        <ix-button type="primary" html-type="submit">添加任务</ix-button>
+        <ix-space>
+          <ix-button type="primary" html-type="submit">添加任务</ix-button>
+        </ix-space>
       </ix-form-item>
     </ix-form>
     <ix-list bordered>
+      <ix-button type="primary" @click="refresh()">刷新列表</ix-button>
+
       <ix-list-item v-for="task in tasks" :key="task._id">
         <div class="task-item">
-          <div><strong>{{ task.name }}</strong></div>
+          <div>
+            <IxTag filled status="success">{{ task.name }}</IxTag>
+            <ix-button icon="delete" shape="circle" @click="handleDeleteTask(task._id)"></ix-button>
+            <ix-button icon="setting" shape="circle" @click="handleUpdateTask(task)"></ix-button>
+          </div>
           <div>Status: {{ task.status }}</div>
           <div>Remark: {{ task.remark }}</div>
         </div>
@@ -31,8 +38,8 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import { fetchTasks, addTask as apiAddTask } from '../services/api'
-import { saveTask, getAllTasks } from '../services/indexdb' // 使用 Dexie 实现
+import { fetchTasks, addTask as apiAddTask, deleteTask as apiDeleteTask, updateTask as apiUpdateTask } from '../services/api'
+import { saveTask, getAllTasks, clearTable } from '../services/indexdb' // 使用 Dexie 实现
 import { setupWebSocket } from '../services/websocket'
 
 export default {
@@ -51,7 +58,15 @@ export default {
       { label: '已完成', value: 'finished' }
     ]
 
-    const loadTasks = async () => {
+    const loadTasks = async (refresh) => {
+      if (refresh) {
+        const fetchedTasks = await fetchTasks()
+        tasks.value = fetchedTasks
+        // 保存到 IndexedDB
+        fetchedTasks.forEach(task => saveTask(task))
+        return;
+      }
+
       try {
         // 从 IndexedDB 加载
         const indexedTasks = await getAllTasks()
@@ -69,8 +84,8 @@ export default {
       try {
         const task = { ...newTask.value }
         const addedTask = await apiAddTask(task)
-        // tasks.value.push(addedTask)
-        // await saveTask(addedTask)
+        tasks.value.push(addedTask)
+        await saveTask(addedTask)
         // 清空输入字段
         newTask.value.name = ''
         newTask.value.status = ''
@@ -80,9 +95,32 @@ export default {
       }
     }
 
+    const handleDeleteTask = async (taskId) => {
+      try {
+        await apiDeleteTask(taskId)
+        // tasks.value = tasks.value.filter(task => task._id !== taskId)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    const handleUpdateTask = async (task) => {
+      try {
+        const updatedTask = { ...task, status: 'updated' } // 示例更新逻辑
+        await apiUpdateTask(task._id, updatedTask)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
     const handleWebSocketMessage = (task) => {
       tasks.value.push(task)
       saveTask(task)
+    }
+
+    const refresh = async () => {
+      await clearTable("tasks")
+      loadTasks(true)
     }
 
     onMounted(() => {
@@ -94,6 +132,9 @@ export default {
       tasks,
       newTask,
       handleAddTask,
+      handleDeleteTask,
+      handleUpdateTask,
+      refresh,  
       statusOptions
     }
   }
