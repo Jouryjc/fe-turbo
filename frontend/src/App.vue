@@ -1,6 +1,8 @@
 <!-- src/App.vue -->
 <template>
-  <TaskList />
+  <ix-message-provider>
+    <task-list />
+  </ix-message-provider>
 </template>
 
 <script>

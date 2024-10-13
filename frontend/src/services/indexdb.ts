@@ -42,3 +42,24 @@ export async function clearTable(tableName) {
     console.error(`Failed to clear table '${tableName}' in IndexedDB:`, error)
   }
 }
+
+// 更新指定数据库的数据，需要指定_id字段
+export async function updateTable(tableName, data) {
+  try {
+    await db.table(tableName).put(data)
+    console.log(`Table '${tableName}' updated in IndexedDB`)
+  } catch (error) {
+    console.error(`Failed to update table '${tableName}' in IndexedDB:`, error)
+  }
+}
+
+
+// 删除指定数据库指定id的数据
+export async function deleteData(tableName, id) {
+  try {
+    await db.table(tableName).delete(id)
+    console.log(`Table '${tableName}' deleted in IndexedDB`)
+  } catch (error) {
+    console.error(`Failed to delete table '${tableName}' in IndexedDB:`, error)
+  }
+}
