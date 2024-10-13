@@ -26,6 +26,8 @@ export async function saveTask(task) {
 export async function getAllTasks() {
   try {
     const allTasks = await tasksTable.toArray()
+
+    console.log('%d tasks fetched from IndexedDB', allTasks.length)
     return allTasks
   } catch (error) {
     console.error('Failed to fetch tasks from IndexedDB:', error)
