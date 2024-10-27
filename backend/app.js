@@ -30,8 +30,29 @@ app.use(cors()); // 使用cors中间件
 
 // HTTP Routes
 app.get("/tasks", async (req, res) => {
-  const tasks = await Task.find();
-  res.json(tasks);
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const tasks = await Task.find()
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const totalTasks = await Task.countDocuments();
+    const totalPages = Math.ceil(totalTasks / limit);
+
+    res.json({
+      tasks,
+      currentPage: page,
+      totalPages,
+      totalTasks
+    });
+  } catch (error) {
+    console.error('获取任务列表时出错:', error);
+    res.status(500).json({ message: '服务器内部错误' });
+  }
 });
 
 app.post("/tasks", async (req, res) => {

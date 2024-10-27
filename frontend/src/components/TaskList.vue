@@ -23,7 +23,7 @@
       <ix-button type="primary" @click="refresh()">刷新列表</ix-button>
       <ix-button type="primary" @click="openModal()">添加任务</ix-button>
     </ix-space>
-    <ix-table :columns="columns" :dataSource="tasks">
+    <ix-table key="_id" :columns="columns" :dataSource="tasks">
       <template #name="{ value }">
         <ix-button mode="link">{{ value }}</ix-button>
       </template>
@@ -105,7 +105,7 @@ export default {
         const fetchedTasks = await fetchTasks();
         tasks.value = fetchedTasks;
         // 保存到 IndexedDB
-        fetchedTasks.forEach((task) => saveTask(task));
+        fetchedTasks.forEach(async (task) => await saveTask(task));
         return;
       }
 
@@ -188,7 +188,7 @@ export default {
     };
 
     const refresh = async () => {
-      await clearTable("tasks");
+      // await clearTable("tasks");
       loadTasks(true);
     };
 
