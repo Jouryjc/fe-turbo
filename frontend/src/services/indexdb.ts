@@ -5,11 +5,19 @@ const db = new Dexie('tasksDB')
 
 // 定义数据库的版本和存储表
 db.version(1).stores({
-  tasks: '_id,name,status,remark' // 使用 '_id' 作为主键
+  tasks: '_id,name,status,remark,key' // 使用 '_id' 作为主键
 })
 
 // 获取任务表引用
 const tasksTable = db.table('tasks')
+
+export async function bulkSaveTasks(tasks) {
+  try {
+    await tasksTable.bulkPut(tasks)
+  } catch (error) {
+    console.error('Failed to save tasks to IndexedDB:', error)
+  }
+}
 
 // 保存任务到 IndexedDB
 export async function saveTask(task) {

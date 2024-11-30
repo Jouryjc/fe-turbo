@@ -6,7 +6,11 @@
           <ix-input v-model:value="newTask.name" placeholder="Task Name"></ix-input>
         </ix-form-item>
         <ix-form-item label="任务状态：" required>
-          <ix-select v-model:value="newTask.status" placeholder="Task Status" :dataSource="statusOptions">
+          <ix-select
+            v-model:value="newTask.status"
+            placeholder="Task Status"
+            :dataSource="statusOptions"
+          >
           </ix-select>
         </ix-form-item>
         <ix-form-item label="备注：">
@@ -23,7 +27,7 @@
       <ix-button type="primary" @click="refresh()">刷新列表</ix-button>
       <ix-button type="primary" @click="openModal()">添加任务</ix-button>
     </ix-space>
-    <ix-table key="_id" :columns="columns" :dataSource="tasks">
+    <ix-table :columns="columns" :dataSource="tasks">
       <template #name="{ value }">
         <ix-button mode="link">{{ value }}</ix-button>
       </template>
@@ -52,6 +56,7 @@ import {
   clearTable,
   updateTable,
   deleteData,
+  bulkSaveTasks,
 } from "../services/indexdb"; // 使用 Dexie 实现
 import { setupWebSocket } from "../services/websocket";
 
@@ -80,9 +85,9 @@ export default {
         dataKey: "status",
         customCell: ({ value }) => {
           const option = statusOptions.find((option) => option.value === value);
-          const label =  option ? option.label : 'unknown';
+          const label = option ? option.label : "unknown";
           return label;
-        }
+        },
       },
       { title: "备注", dataKey: "remark" },
       {
@@ -102,17 +107,27 @@ export default {
 
     const loadTasks = async (refresh) => {
       if (refresh) {
-        const fetchedTasks = await fetchTasks();
+        console.time("fetchTasks");
+        let fetchedTasks = await fetchTasks();
+        fetchedTasks = fetchedTasks.map((task) => ({
+          ...task,
+          key: task._id.toString(),
+        }));
         tasks.value = fetchedTasks;
-        // 保存到 IndexedDB
-        fetchedTasks.forEach(async (task) => await saveTask(task));
+        console.timeEnd("fetchTasks");
+
+        console.time("saveDataIntoIndexDB");
+        await bulkSaveTasks(fetchedTasks);
+        console.timeEnd("saveDataIntoIndexDB");
         return;
       }
 
       try {
         // 从 IndexedDB 加载
+        console.time("getAllTasks");
         const indexedTasks = await getAllTasks();
         tasks.value = indexedTasks;
+        console.timeEnd("getAllTasks");
       } catch (error) {
         console.error(error);
         const fetchedTasks = await fetchTasks();

@@ -1,7 +1,7 @@
 // src/services/api.js
 export const API_URL = 'http://127.0.0.1:3000/tasks'
 
-export async function fetchTasks(page = 1, limit = 1000, allTasks = []) {
+export async function fetchTasks(page = 1, limit = 200, allTasks = []) {
   const response = await fetch(`${API_URL}?page=${page}&limit=${limit}`);
   if (!response.ok) {
     throw new Error('获取任务失败');
