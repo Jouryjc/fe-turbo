@@ -28,8 +28,8 @@ services:
       - mongodb
 
   backend:
-    build: ./backend
-    container_name: backend
+    build: ./backend-go
+    container_name: backend-go
     environment:
       - MONGODB_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/turbo?authSource=admin
       - DAPR_PUBSUB_NAME=pubsub
@@ -38,6 +38,7 @@ services:
       # - dapr
     ports:
       - "3000:3000"
+      - "8081:8081"
 
   frontend:
     build: ./frontend
