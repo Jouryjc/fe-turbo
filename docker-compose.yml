@@ -28,11 +28,10 @@ services:
       - mongodb
 
   backend:
-    build: ./backend-go
-    container_name: backend-go
+    build: ./backend
+    container_name: backend
     environment:
       - MONGODB_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/turbo?authSource=admin
-      - DAPR_PUBSUB_NAME=pubsub
     depends_on:
       - mongodb
       # - dapr
@@ -77,6 +76,16 @@ services:
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
 
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    restart: "no"
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:9092"
+    depends_on:
+      - "kafka"
+
   kafka:
     image: bitnami/kafka:3.4
     ports:
@@ -105,7 +114,7 @@ services:
       - ./gravity/config.toml:/app/config.toml
     depends_on:
       - mongodb
-      # - dapr
+      - kafka
     restart: unless-stopped
 
 volumes:
